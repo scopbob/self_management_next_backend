@@ -6,10 +6,10 @@ class TodoSchemaIn(ModelSchema):
     model = Todo
     exclude = ["id", "user"]
 
-class TodoSchema(ModelSchema):
+class TodoSchemaOut(ModelSchema):
   class Meta:
     model = Todo
-    exclude = ["id", "user"]
+    exclude = ["user"]
 
 class CategorySchema(ModelSchema):
   class Meta:

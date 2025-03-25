@@ -4,7 +4,5 @@ db.sqlite3
 *.pyc
 __pycache__/
 memo.txt
-.vscode/
-.prettierignore
 local_settings.py
 .env

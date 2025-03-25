@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404
 from typing import List
 from ninja_jwt.authentication import JWTAuth
 from .models import Todo, Category
-from .schemas import TodoSchemaIn, TodoSchema, CategorySchema
+from .schemas import TodoSchemaIn, TodoSchemaOut, CategorySchema
 
 router = Router(auth=JWTAuth())
 
@@ -20,21 +20,21 @@ def create_todo(request, payload: TodoSchemaIn):
   todo.save()
   return {"id": todo.id}
 
-@todo_router.get("/{todo_id}", response=TodoSchema)
+@todo_router.get("/{todo_id}", response=TodoSchemaOut)
 def get_todo(request, todo_id: int):
   user=request.auth
   todo = get_object_or_404(Todo, user=user, id=todo_id)
 
   return todo
 
-@todo_router.get("", response=List[TodoSchema])
+@todo_router.get("", response=List[TodoSchemaOut])
 def list_todos(request):
   user = request.auth
   todos = Todo.objects.filter(user=user)
   return todos
 
 @todo_router.put("/{todo_id}")
-def update_todo(request, todo_id: int, payload: TodoSchema):
+def update_todo(request, todo_id: int, payload: TodoSchemaOut):
   user=request.auth
   todo = get_object_or_404(Todo, user=user, id=todo_id)
   for attr, value in payload.dict().items():
