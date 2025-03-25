@@ -1,0 +1,17 @@
+{
+  "name": "Django Sample",
+  // Dockerfileでイメージ・コンテナを作成
+  "dockerComposeFile": "../docker-compose.yml",
+  // VS Codeのワークスペースフォルダ
+  "workspaceFolder": "/backend",
+  // 使用するサービス
+  "service": "backend",
+  "runServices": ["backend", "db", "pgadmin4"],
+  // リモート先のVS Codeにインストールする拡張機能
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-python.python"]
+    }
+  },
+  "shutdownAction": "stopCompose"
+}
