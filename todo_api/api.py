@@ -12,9 +12,12 @@ todo_router = Router(tags=["Todo"])
 @todo_router.post("/create_todo")
 def create_todo(request, payload: TodoSchemaIn):
   payload_dict = payload.dict()
+
   user = request.auth
-  if payload_dict["category_id"] or payload_dict["category_id"]==0:
-    payload_dict["category"] = get_object_or_404(Category, user=user, id=payload_dict["category_id"])
+  if payload_dict["category"] and payload_dict["category"]!=0:
+    payload_dict["category"] = get_object_or_404(Category, user=user, id=payload_dict["category"])
+  elif payload_dict["category"]==0:
+    payload_dict.pop("category")
   todo = Todo(user=user, **payload_dict)
   todo.full_clean()
   todo.save()
@@ -34,10 +37,16 @@ def list_todos(request):
   return todos
 
 @todo_router.put("/{todo_id}")
-def update_todo(request, todo_id: int, payload: TodoSchemaOut):
+def update_todo(request, todo_id: int, payload: TodoSchemaIn):
+  payload_dict = payload.dict()
   user=request.auth
   todo = get_object_or_404(Todo, user=user, id=todo_id)
-  for attr, value in payload.dict().items():
+  if payload_dict["category"] and payload_dict["category"]!=0:
+    payload_dict["category"] = get_object_or_404(Category, user=user, id=payload_dict["category"])
+  elif payload_dict["category"]==0:
+    payload_dict.pop("category")
+
+  for attr, value in payload_dict.items():
     setattr(todo, attr, value)
   todo.full_clean()
   todo.save()
