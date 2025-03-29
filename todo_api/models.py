@@ -21,6 +21,12 @@ class Todo(models.Model):
   def __str__(self):
       return self.title
 
+
+  def clean(self):
+     if self.due < self.start:
+        raise ValidationError("Due must be after Start")
+
+
   user = models.ForeignKey(User, on_delete=models.CASCADE)
   title = models.CharField(max_length=50)
   text = models.TextField(max_length=500, blank=True)
