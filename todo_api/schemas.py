@@ -11,7 +11,12 @@ class TodoSchemaOut(ModelSchema):
     model = Todo
     exclude = ["user"]
 
-class CategorySchema(ModelSchema):
+class CategorySchemaIn(ModelSchema):
   class Meta:
     model = Category
     exclude = ["id", "user"]
+
+class CategorySchemaOut(ModelSchema):
+  class Meta:
+    model = Category
+    exclude = ["user"]

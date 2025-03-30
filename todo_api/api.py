@@ -1,15 +1,16 @@
 from ninja import Router
 from django.shortcuts import get_object_or_404
+from django.db.models import Q
 from typing import List
 from ninja_jwt.authentication import JWTAuth
 from .models import Todo, Category
-from .schemas import TodoSchemaIn, TodoSchemaOut, CategorySchema
+from .schemas import TodoSchemaIn, TodoSchemaOut, CategorySchemaIn, CategorySchemaOut
 
 router = Router(auth=JWTAuth())
 
 todo_router = Router(tags=["Todo"])
 
-@todo_router.post("/create_todo")
+@todo_router.post("/create")
 def create_todo(request, payload: TodoSchemaIn):
   payload_dict = payload.dict()
 
@@ -23,18 +24,27 @@ def create_todo(request, payload: TodoSchemaIn):
   todo.save()
   return {"id": todo.id}
 
+
+@todo_router.get("", response=List[TodoSchemaOut])
+def list_todos(request,limit: int, offset: int, search: str=None):
+  user = request.auth
+  todos = Todo.objects.filter(user=user)
+  if search != None:
+    todos = todos.filter(Q(title__contains=search)|Q(text__contains=search))
+  todos = todos[offset:offset+limit]
+  return todos
+
+@todo_router.get("/count")
+def count_todos(request):
+  user = request.auth
+  count = Todo.objects.filter(user=user).count()
+  return count
+
 @todo_router.get("/{todo_id}", response=TodoSchemaOut)
 def get_todo(request, todo_id: int):
   user=request.auth
   todo = get_object_or_404(Todo, user=user, id=todo_id)
-
   return todo
-
-@todo_router.get("", response=List[TodoSchemaOut])
-def list_todos(request):
-  user = request.auth
-  todos = Todo.objects.filter(user=user)
-  return todos
 
 @todo_router.put("/{todo_id}")
 def update_todo(request, todo_id: int, payload: TodoSchemaIn):
@@ -65,7 +75,7 @@ router.add_router("", router=todo_router)
 category_router = Router(tags=["Category"])
 
 @category_router.post("/create_category")
-def create_category(request, payload: CategorySchema):
+def create_category(request, payload: CategorySchemaIn):
   payload_dict = payload.dict()
   user = request.auth
   category = Category(user=user, **payload_dict)
@@ -73,20 +83,20 @@ def create_category(request, payload: CategorySchema):
   category.save()
   return {"id": category.id}
 
-@category_router.get("/{category_id}", response=CategorySchema)
+@category_router.get("/{category_id}", response=CategorySchemaOut)
 def get_category(request, category_id: int):
   user=request.auth
   category = get_object_or_404(Category, user=user, id=category_id)
   return category
 
-@category_router.get("", response=List[CategorySchema])
+@category_router.get("", response=List[CategorySchemaOut])
 def list_categories(request):
   user = request.auth
-  categorys = Category.objects.filter(user=user)
-  return categorys
+  categories = Category.objects.filter(user=user)
+  return categories
 
 @category_router.put("/{category_id}")
-def update_category(request, category_id: int, payload: CategorySchema):
+def update_category(request, category_id: int, payload: CategorySchemaIn):
   user=request.auth
   category = get_object_or_404(Category, user=user, id=category_id)
   for attr, value in payload.dict().items():
@@ -101,4 +111,4 @@ def delete_category(request, category_id: int):
   category.delete()
   return {"success": True}
 
-router.add_router("category", router=category_router)
+router.add_router("category/", router=category_router)
