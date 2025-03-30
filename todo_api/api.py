@@ -13,7 +13,6 @@ todo_router = Router(tags=["Todo"])
 @todo_router.post("/create")
 def create_todo(request, payload: TodoSchemaIn):
   payload_dict = payload.dict()
-
   user = request.auth
   if payload_dict["category"] and payload_dict["category"]!=0:
     payload_dict["category"] = get_object_or_404(Category, user=user, id=payload_dict["category"])
