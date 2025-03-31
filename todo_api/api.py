@@ -26,19 +26,22 @@ def create_todo(request, payload: TodoSchemaIn):
 
 
 @todo_router.get("", response=List[TodoSchemaOut])
-def list_todos(request,limit: int, offset: int, search: str=None):
+def list_todos(request, limit: int=None, offset: int=None, search: str=None):
   user = request.auth
   todos = Todo.objects.filter(user=user)
   if search != None:
-    todos = todos.filter(Q(title__contains=search)|Q(text__contains=search))
-  todos = todos[offset:offset+limit]
+    todos = todos.filter(Q(title__contains=search)|Q(text__contains=search)|Q(category__name__contains=search))
+  if (limit is not None) and (offset is not None):
+    todos = todos[offset:offset+limit]
   return todos
 
 @todo_router.get("/count")
-def count_todos(request):
+def count_todos(request, search: str=None):
   user = request.auth
-  count = Todo.objects.filter(user=user).count()
-  return count
+  todos = Todo.objects.filter(user=user)
+  if search != None:
+    todos = todos.filter(Q(title__contains=search)|Q(text__contains=search)|Q(category__name__contains=search))
+  return todos.count()
 
 @todo_router.get("/{todo_id}", response=TodoSchemaOut)
 def get_todo(request, todo_id: int):
@@ -95,10 +98,12 @@ def list_categories(request, limit: int=None, offset: int=None, search: str=None
 
 
 @category_router.get("/count")
-def count_todos(request):
+def count_todos(request, search: str=None):
   user = request.auth
-  count = Category.objects.filter(user=user).count()
-  return count
+  categories = Category.objects.filter(user=user)
+  if search != None:
+    categories = categories.filter(Q(name__contains=search)|Q(color__contains=search))
+  return categories.count()
 
 
 @category_router.get("/{category_id}", response=CategorySchemaOut)
