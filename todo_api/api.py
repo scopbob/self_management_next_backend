@@ -13,6 +13,7 @@ todo_router = Router(tags=["Todo"])
 @todo_router.post("/create")
 def create_todo(request, payload: TodoSchemaIn):
   payload_dict = payload.dict()
+
   user = request.auth
   if payload_dict["category"] and payload_dict["category"]!=0:
     payload_dict["category"] = get_object_or_404(Category, user=user, id=payload_dict["category"])
@@ -73,7 +74,7 @@ router.add_router("", router=todo_router)
 
 category_router = Router(tags=["Category"])
 
-@category_router.post("/create_category")
+@category_router.post("/create")
 def create_category(request, payload: CategorySchemaIn):
   payload_dict = payload.dict()
   user = request.auth
@@ -82,17 +83,29 @@ def create_category(request, payload: CategorySchemaIn):
   category.save()
   return {"id": category.id}
 
+@category_router.get("", response=List[CategorySchemaOut])
+def list_categories(request, limit: int=None, offset: int=None, search: str=None):
+  user = request.auth
+  categories = Category.objects.filter(user=user)
+  if search != None:
+    categories = categories.filter(Q(name__contains=search)|Q(color__contains=search))
+  if (limit is not None) and (offset is not None):
+    categories = categories[offset:offset+limit]
+  return categories
+
+
+@category_router.get("/count")
+def count_todos(request):
+  user = request.auth
+  count = Category.objects.filter(user=user).count()
+  return count
+
+
 @category_router.get("/{category_id}", response=CategorySchemaOut)
 def get_category(request, category_id: int):
   user=request.auth
   category = get_object_or_404(Category, user=user, id=category_id)
   return category
-
-@category_router.get("", response=List[CategorySchemaOut])
-def list_categories(request):
-  user = request.auth
-  categories = Category.objects.filter(user=user)
-  return categories
 
 @category_router.put("/{category_id}")
 def update_category(request, category_id: int, payload: CategorySchemaIn):

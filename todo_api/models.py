@@ -14,7 +14,7 @@ class Category(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
-    color = models.CharField(max_length=20)
+    color = models.CharField(max_length=32)
 
 
 class Todo(models.Model):
