@@ -35,11 +35,12 @@ class Todo(models.Model):
   progress = models.IntegerField(default=0, validators=[MaxValueValidator(100), MinValueValidator(0)])
   category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
 
-  PRIORITY_CHOICES = {
-    "Hi":"high",
-    "Md":"middle",
-    "Lo":"low"
-  }
+  PRIORITY_CHOICES = [
+     ("Hi", "high"),
+     ("Md", "middle"),
+     ("Lo", "low")
+  ]
+
   priority = models.CharField(max_length=3, choices=PRIORITY_CHOICES, default="Md")
 
 

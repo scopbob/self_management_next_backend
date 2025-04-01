@@ -26,11 +26,21 @@ def create_todo(request, payload: TodoSchemaIn):
 
 
 @todo_router.get("", response=List[TodoSchemaOut])
-def list_todos(request, limit: int=None, offset: int=None, search: str=None):
+def list_todos(request, limit: int=None, offset: int=None, search: str=None, order: str=None, reverse: bool=False):
   user = request.auth
   todos = Todo.objects.filter(user=user)
+
+  # Filter
   if search != None:
     todos = todos.filter(Q(title__contains=search)|Q(text__contains=search)|Q(category__name__contains=search))
+
+  # Order
+  if order is not None:
+    todos = todos.order_by(order)
+  if reverse:
+    todos = todos.reverse()
+
+  # Slice
   if (limit is not None) and (offset is not None):
     todos = todos[offset:offset+limit]
   return todos
