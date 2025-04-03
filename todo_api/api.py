@@ -112,7 +112,7 @@ def list_categories(request, limit: int=None, offset: int=None, search: str=None
 
 
 @category_router.get("/count")
-def count_todos(request, search: str=None):
+def count_categories(request, search: str=None):
   user = request.auth
   categories = Category.objects.filter(user=user)
   if search != None:
