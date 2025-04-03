@@ -97,11 +97,13 @@ def create_category(request, payload: CategorySchemaIn):
   return {"id": category.id}
 
 @category_router.get("", response=List[CategorySchemaOut])
-def list_categories(request, limit: int=None, offset: int=None, search: str=None):
+def list_categories(request, limit: int=None, offset: int=None, search: str=None, ids:List[int]=None):
   user = request.auth
   categories = Category.objects.filter(user=user)
-  if search != None:
+  if search is not None:
     categories = categories.filter(Q(name__contains=search)|Q(color__contains=search))
+  if ids is not None:
+    categories = categories.filter(id__in=ids)
   if (limit is not None) and (offset is not None):
     categories = categories[offset:offset+limit]
   return categories
