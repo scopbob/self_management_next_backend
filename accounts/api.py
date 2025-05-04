@@ -1,17 +1,19 @@
 from ninja import Router, Form
 from ninja_jwt.authentication import JWTAuth
 from ninja_jwt.tokens import RefreshToken
-from django.shortcuts import get_object_or_404
 from django.core.exceptions import ValidationError
 import os
 import requests
+import base64
+import uuid
 from dotenv import load_dotenv
+from django.conf import settings
 
 from ninja_jwt.routers.blacklist import blacklist_router
 from ninja_jwt.routers.obtain import obtain_pair_router, sliding_router
 from ninja_jwt.routers.verify import verify_router
 
-from .schemas import GithubSchema, TokenSchema, UserSchemaIn, UserSchemaOut, PasswordSchema
+from .schemas import GithubSchema, TokenSchema, UserSchemaIn, UserSchemaOut, PasswordSchema, AvatarSchema
 from .models import User
 
 load_dotenv()
@@ -78,6 +80,45 @@ router.add_router("/auth", tags=["Auth"], router=auth_router)
 def get_my_user(request):
   user = request.auth
   return user
+
+@router.post("avatar", tags=["Account"], auth=JWTAuth())
+def set_avatar(request, data: AvatarSchema):
+  user = request.auth
+
+  if not data.image.startswith("data:image"):
+        return {"error": "Invalid image format"}
+
+  format, imgstr = data.image.split(";base64,")
+  ext = format.split("/")[-1]
+  file_name = f"{uuid.uuid4()}.{ext}"
+
+  # 保存先パス
+  file_path = os.path.join(settings.MEDIA_ROOT, "avatars", file_name)
+
+  # 保存先フォルダ作成
+  os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+  # 古いアバターを削除（ファイルが存在すれば）
+  if user.avatar:
+      old_avatar_path = os.path.join(settings.MEDIA_ROOT, str(user.avatar))
+      if os.path.exists(old_avatar_path):
+          try:
+              os.remove(old_avatar_path)
+          except Exception as e:
+              print(f"Failed to delete old avatar: {e}")
+
+  # 画像保存
+  with open(file_path, "wb") as f:
+      f.write(base64.b64decode(imgstr))
+
+  # 画像のURLをDBに保存
+  user.avatar = f"avatars/{file_name}"
+  user.save()
+
+  return {
+      "message": "Image saved",
+      "url": f"{settings.MEDIA_URL}avatars/{file_name}",
+  }
 
 @router.post("", tags=["Account"], response=UserSchemaOut)
 def create_user(request, data: UserSchemaIn):

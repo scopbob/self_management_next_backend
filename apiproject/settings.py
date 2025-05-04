@@ -132,6 +132,11 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# メディアファイルの保存場所
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# メディアファイルのURL
+MEDIA_URL = '/media/'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
@@ -142,4 +147,5 @@ from datetime import timedelta
 NINJA_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'TOKEN_OBTAIN_PAIR_INPUT_SCHEMA': 'accounts.schemas.MyTokenObtainPairInputSchema',
 }

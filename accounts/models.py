@@ -44,6 +44,12 @@ class User(AbstractBaseUser):
     max_length = 255,
     unique = True,
   )
+  avatar = models.ImageField(
+    verbose_name = "アバター画像",
+    upload_to = "avatars/",
+    blank = True,
+    null = True,
+  )
   active = models.BooleanField(default=True)
   staff = models.BooleanField(default=False)
   admin = models.BooleanField(default=False)
